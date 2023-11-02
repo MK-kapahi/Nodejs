@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   imagePath: {
     type: String,
   },
+  role: { type: Number },
 });
 
 module.exports = mongoose.model("User", UserSchema);
