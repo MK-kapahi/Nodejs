@@ -8,15 +8,17 @@ const {
   addUser,
   deleteUser,
   updateUser,
-  getImage
+  getImage,
+  getUserById,
+  loginUser,
+  validateToken,
 } = require("../Controller/userController");
 
-router.get("/", getUsers);
+router.get("/user", getUsers);
 
 const storage = multer.diskStorage({
 
   destination: function (req, file, cb) {
-    // console.log(file)
     cb(null, "./data");
   },
   filename: function (req, file, cb) {
@@ -32,7 +34,10 @@ router.delete("/deleteUser/:id", deleteUser);
 router.put("/updateUser/:id", updateUser);
 
 router.get("/image/:name" , getImage)
+router.get("/findUser/:id" , getUserById)
 
+router.post("/login" , loginUser)
 
+router.get("/validateToken" , validateToken)
 
 module.exports = router;
