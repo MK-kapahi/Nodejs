@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 const Session = require("../Modal/session");
-const { response } = require("express");
 
 const validateToken = async (req, response, next) => {
   console.log("middleware called");
@@ -21,6 +20,9 @@ const validateToken = async (req, response, next) => {
       const session = await Session.find({ userId: decoded.user_id });
       console.log("Hi i am session" + session);
       if (session[0].token === token) {
+        req.role = session[0].role;
+        req.userId = session[0].userId;
+
         if (session[0].role == 0) {
           req.userId = session[0].userId;
           next();
@@ -58,7 +60,29 @@ const validateUser = async (req, response, next) => {
   });
 };
 
+const AuthenticationMiddleware = (req, res, next) => {
+  console.log(req.headers);
+  const token = req.headers["authorization"];
+
+  console.log(token);
+  jwt.verify(token, process.env.JWT_KEY, async (err, decoded) => {
+    if (err) {
+      console.log(err);
+    } else {
+      const session = await Session.find({ userId: decoded.user_id });
+      if (session[0].token === token) {
+        req.role = session[0].role;
+        req.userId = session[0].userId;
+        next();
+      } else {
+        res.status(401).send("Unauthorized");
+      }
+    }
+  });
+};
+
 module.exports = {
   validateToken,
   validateUser,
+  AuthenticationMiddleware,
 };
