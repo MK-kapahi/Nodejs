@@ -11,33 +11,36 @@ const {
   getImage,
   getUserById,
   loginUser,
-  validateToken,
+  logoutUser
 } = require("../Controller/userController");
 
-router.get("/user", getUsers);
+const { validateToken } = require("../Middleware/middleware");
+
+router.get("/user", validateToken ,getUsers);
 
 const storage = multer.diskStorage({
-
   destination: function (req, file, cb) {
     cb(null, "./data");
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now();
-    cb(null,uniqueSuffix+ file.originalname);
+    cb(null, uniqueSuffix + file.originalname);
   },
 });
 const upload = multer({ storage: storage });
-router.post("/addUser", upload.single("file"), addUser);
+router.post("/addUser", validateToken ,upload.single("file"), addUser);
 
-router.delete("/deleteUser/:id", deleteUser);
+router.delete("/deleteUser/:id", validateToken ,deleteUser);
 
-router.put("/updateUser/:id", updateUser);
+router.put("/updateUser/:id", validateToken , updateUser);
 
-router.get("/image/:name" , getImage)
-router.get("/findUser/:id" , getUserById)
+router.get("/image/:name" ,getImage);
+router.get("/findUser/:id", validateToken ,getUserById);
 
-router.post("/login" , loginUser)
+router.post("/login", loginUser);
 
-router.get("/validateToken" , validateToken)
+// router.get("/validateToken" , validateToken)
+router.delete("/logout", logoutUser)
+
 
 module.exports = router;
