@@ -112,6 +112,7 @@ const getUserById = async (req, res) => {
 const loginUser = async (req, res) => {
   const emailId = req.body.email;
   const userPassword = req.body.password;
+  console.log(userPassword);
   try {
     const user = await User.findOne({ email: emailId });
     console.log(user);
@@ -123,11 +124,13 @@ const loginUser = async (req, res) => {
           const token = jwt.sign({ user_id: user._id }, process.env.JWT_KEY, {
             expiresIn: "2h",
           });
+
           const session = new Session({
             userId: user._id,
             token: token,
-            role: 0,
+            role: user.role,
           });
+
           await session.save();
           console.log(response);
           console.log(token);
@@ -145,9 +148,21 @@ const loginUser = async (req, res) => {
   }
 };
 
-const testFunc = async (req, res) => {
-  console.log("function called sucessfully");
-  res.status(200);
+// validating the role of user
+const validateToken = (req, response) => {
+  const token = req.headers["auth"];
+  jwt.verify(token, process.env.JWT_KEY, (err, decoded) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(decoded);
+      if (decode.role === 0) {
+        response.status(200).send("Sucess");
+      } else {
+        response.status(401).send("Un authorized");
+      }
+    }
+  });
 };
 
 module.exports = {
@@ -158,5 +173,5 @@ module.exports = {
   getImage,
   getUserById,
   loginUser,
-  testFunc,
+  validateToken,
 };
