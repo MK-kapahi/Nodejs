@@ -1,7 +1,7 @@
 const { Roles } = require("../utils/constant");
 const Session = require("../Modal/session");
 const User = require("../Modal/user");
-const { creatingHashedPass } = require("../utils/commonFunction")
+const { creatingHashedPass } = require("../utils/commonFunction");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const user = require("../Modal/user");
@@ -56,8 +56,13 @@ const loginUser = async (req, res) => {
       // await session.save();
     }
 
-    res.cookie("token", token ,{ maxAge: 2 * 60 * 60 * 1000 , domain: 'localhost' });
-    res.setHeader('Set-Cookie', token ,{ maxAge: 2 * 60 * 60 * 1000 , domain: 'localhost' });
+    res.cookie("token", token, {
+      maxAge: 2 * 60 * 60 * 1000,
+      domain: "localhost",
+    });
+    res.setHeader("token", token, {
+      maxAge: 2 * 60 * 60 * 1000,
+    });
     res.status(200).send({
       data: user,
       message: " Login in Sucessful",
@@ -91,61 +96,56 @@ const logoutUser = async (req, response) => {
   }
 };
 
-
 const register = async (req, res) => {
-
-
   if (req.role != Roles.Admin) {
     res.status(401).send("Unauthorized");
     return;
   }
 
   const hashPass = await creatingHashedPass(req, res);
-    const getUsers = await User.find({});
-    console.log(Roles.Admin);
-    if (getUsers.length >= 1) {
-      role = Roles.User;
-    } else {
-      role = Roles.Admin;
-    }
+  const getUsers = await User.find({});
+  console.log(Roles.Admin);
+  if (getUsers.length >= 1) {
+    role = Roles.User;
+  } else {
+    role = Roles.Admin;
+  }
 
-    let user = await User.find({email : req.body.email})
+  let user = await User.find({ email: req.body.email });
 
-    if(user)
-    {
-      res.status(400).send("Email Already exsist ")
-    }
-  
-    try {
-      console.log("Controller add user" + req.file);
-      filename = req.file.filename;
-      const user = new User({
-        name: req.body.name,
-        email: req.body.email,
-        password : hashPass,
-        contact: req.body.contact,
-        age: req.body.age,
-        imagePath: filename,
-        role: role,
-      });
-  
-  
-      await user.save();
-      res.send( user);
-    } catch (error) {
-      console.log(error);
-         res.send(error);
-    }
-  };
+  if (user) {
+    res.status(400).send("Email Already exsist ");
+  }
 
-const getData = async (req , res) =>{
   try {
-    const users = await User.find({ });
+    console.log("Controller add user" + req.file);
+    filename = req.file.filename;
+    const user = new User({
+      name: req.body.name,
+      email: req.body.email,
+      password: hashPass,
+      contact: req.body.contact,
+      age: req.body.age,
+      imagePath: filename,
+      role: role,
+    });
+
+    await user.save();
+    res.send(user);
+  } catch (error) {
+    console.log(error);
+    res.send(error);
+  }
+};
+
+const getData = async (req, res) => {
+  try {
+    const users = await User.find({});
     res.status(200).send(users);
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
   }
-}  
+};
 
-module.exports = { loginUser, logoutUser , register , getData };
+module.exports = { loginUser, logoutUser, register, getData };
