@@ -5,42 +5,43 @@ const router = express.Router();
 
 const {
   getUsers,
-  addUser,
-  deleteUser,
-  updateUser,
   getImage,
   getUserById,
-  loginUser,
-  logoutUser
+  storage
 } = require("../Controller/userController");
 
-const { validateToken } = require("../Middleware/middleware");
+const { loginUser, logoutUser, register , getData } = require("../Controller/authController");
 
-router.get("/user", validateToken ,getUsers);
+const {
+  updateUser ,
+  deleteUser
+} = require ("../Controller/adminController")
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./data");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now();
-    cb(null, uniqueSuffix + file.originalname);
-  },
-});
-const upload = multer({ storage: storage });
-router.post("/addUser", validateToken ,upload.single("file"), addUser);
+const {
+  AuthenticationMiddleware,
+  validateToken,
+} = require("../Middleware/middleware");
 
-router.delete("/deleteUser/:id", validateToken ,deleteUser);
+const upload = multer({ storage: storage  });
 
-router.put("/updateUser/:id", validateToken , updateUser);
-
-router.get("/image/:name" ,getImage);
-router.get("/findUser/:id", validateToken ,getUserById);
-
+//Auth Routes
 router.post("/login", loginUser);
+router.delete("/logout", AuthenticationMiddleware , logoutUser);
 
-// router.get("/validateToken" , validateToken)
-router.delete("/logout", logoutUser)
 
+//admin Routes 
+router.post("/addUser",   AuthenticationMiddleware ,upload.single("file"), register);
+router.delete("/deleteUser/:id", AuthenticationMiddleware, deleteUser);
+router.put("/updateUser/:id", upload.single("file") , AuthenticationMiddleware, updateUser);
+
+
+//Routes
+router.get("/image/:name", getImage);
+router.get("/findUser/:id", validateToken, getUserById);
+router.get("/image/:name", getImage);
+router.get("/user", AuthenticationMiddleware, getUsers);
+
+
+router.get("/getData" , getData)
 
 module.exports = router;

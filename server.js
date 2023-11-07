@@ -4,7 +4,8 @@ const mongoDB = require("./database/connection");
 const cors = require('cors');
 const bodyParser = require("body-parser");
 const userRoutes = require("./Routes/userRoutes");
-const { testFunc } = require('./Controller/userController');
+const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 require('dotenv').config();
 const PORT = process.env.PORT
 
@@ -12,6 +13,11 @@ app.use(cors({
     origin: "*"
 }));
 app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(cookieSession({
+    name: 'session',
+    keys: ['abc']
+  }))
 
 app.use("/v1", userRoutes);
 
