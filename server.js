@@ -4,16 +4,27 @@ const mongoDB = require("./database/connection");
 const cors = require('cors');
 const bodyParser = require("body-parser");
 const userRoutes = require("./Routes/userRoutes");
-const { testFunc } = require('./Controller/userController');
-require('dotenv').config();
-const PORT = process.env.PORT
+const cookieParser = require('cookie-parser');
+const {Schedule} = require('./cron')
 
-app.use(cors({
-    origin: "*"
-}));
+
+const {
+    Port,
+    URL
+} = require("./config");
+const PORT = Port || 8000
+app.use(
+    cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+    })
+  );
+
+  Schedule.start();
 app.use(bodyParser.json());
+app.use(cookieParser());
 
-app.use("/v1", userRoutes);
+app.use("/api/v1", userRoutes);
 
 console.log("staging environment connection")
 
