@@ -1,4 +1,3 @@
-
 const User = require("../Modal/user");
 const path = require("path");
 const { Roles } = require("../utils/constant");
@@ -14,21 +13,16 @@ const getUsers = async (req, res) => {
       console.log(error);
       res.status(500).send(error);
     }
-  }
-
-  else if (req.role == Roles.User) {
+  } else if (req.role == Roles.User) {
     try {
-
-      console.log(req.userId)
+      console.log(req.userId);
       const users = await User.find({ _id: req.userId });
       res.status(200).send(users);
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
     }
-  }
-
-  else {
+  } else {
     res.status(401).send("Unauthorized");
   }
 };
@@ -62,36 +56,38 @@ const storage = multer.diskStorage({
 });
 
 const getAllFilteredUsers = async (req, res) => {
-  console.log("heyyyyyyyyyyyyy")
+  console.log("heyyyyyyyyyyyyy");
   const char = "";
-  console.log(char)
+  console.log(char);
 
   const search = await User.find({});
-  const filter = []
+  const filter = [];
 
   try {
+    98;
+    console.log(req.query.char);
+    // console.log(req.params["char"]);
+    var temp = req.query.char;
 
-    if (char.trim() === '') {
-      console.log(search)
-    }
-
-    else {
+    if (typeof temp === "undefined" || temp === "") {
+      console.log("asjdgjasd");
+      console.log(search);
+      res.send(search);
+    } else {
       for (const singleUser of search) {
         const nameLowerCase = singleUser.name.toLowerCase();
 
         // || (singleUser.age >= req.param.minAge && singleUser.age < req.param.maxAge)
-        if (nameLowerCase.includes(char)) {
-          filter.push(singleUser)
+        if (nameLowerCase.includes(temp)) {
+          filter.push(singleUser);
         }
       }
-      res.send(filter)
-
+      res.send(filter);
     }
+  } catch (err) {
+    console.log(err);
   }
-  catch (err) {
-    console.log(err)
-  }
-}
+};
 
 module.exports = {
   getUsers,
