@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
+const {
+    DB
+     } = require("../config");
 
 const mongoDB = new Promise((resolve, reject) => {
-    mongoose.connect(`mongodb://127.0.0.1:27017/myDatabase`).then(connected => {
+    mongoose.connect(DB).then(connected => {
         resolve(connected);
     }).catch(connectionError => {
         reject(connectionError);

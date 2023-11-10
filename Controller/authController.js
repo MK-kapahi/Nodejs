@@ -4,11 +4,13 @@ const User = require("../Modal/user");
 const { creatingHashedPass } = require("../utils/commonFunction")
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const user = require("../Modal/user");
-const { MulterError } = require("multer");
+const {
+  KEY
+   } = require("../config");
+
+
 
 const loginUser = async (req, res) => {
-  console.log(req.body);
   const emailId = req.body.email;
   const userPassword = req.body.password;
   console.log(userPassword);
@@ -25,39 +27,44 @@ const loginUser = async (req, res) => {
       return res.status(401).send({ message: "Incorrect password" });
     }
 
-    const token = jwt.sign({ user_id: user._id }, process.env.JWT_KEY, {
+    const token = jwt.sign({ user_id: user._id , role : user.role }, KEY, {
       expiresIn: "2h",
     });
 
-    let sessionInquiry = await getSessionUser(user._id);
-    if (sessionInquiry) {
-      //update the session
-      console.log("Updating the session");
-      try {
-        console.log("Session updating");
-        const session = await Session.findOneAndUpdate(
-          { userId: user._id },
-          {
-            token: token,
-          }
-        );
-      } catch (error) {
-        console.log(error);
-        return res.status(500).send(error);
-      }
-    } else {
-      //create the session
-      // console.log("Creating new session");
-      // const session = new Session({
-      //   userId: user._id,
-      //   token: token,
-      //   role: user.role,
-      // });
-      // await session.save();
-    }
+    // let sessionInquiry = await getSessionUser(user._id);
+    // if (sessionInquiry) {
+    //   //update the session
+    //   console.log("Updating the session");
+    //   try {
+    //     console.log("Session updating");
+    //     const session = await Session.findOneAndUpdate(
+    //       { userId: user._id },
+    //       {
+    //         token: token,
+    //       }
+    //     );
+    //   } catch (error) {
+    //     console.log(error);
+    //     return res.status(500).send(error);
+    //   }
+    // } else {
+    //   //create the session
+    //   // console.log("Creating new session");
+    //   // const session = new Session({
+    //   //   userId: user._id,
+    //   //   token: token,
+    //   //   role: user.role,
+    //   // });
+    //   // await session.save();
+    // }
 
-    res.cookie("token", token ,{ maxAge: 2 * 60 * 60 * 1000 , domain: 'localhost' });
-    res.setHeader('Set-Cookie', token ,{ maxAge: 2 * 60 * 60 * 1000 , domain: 'localhost' });
+    res.cookie( "token" , token, {
+      maxAge: 2 * 60 * 60 * 1000,
+      domain: "localhost",
+    });
+    // res.setHeader("token", token, {
+    //   maxAge: 2 * 60 * 60 * 1000,
+    // });
     res.status(200).send({
       data: user,
       message: " Login in Sucessful",
@@ -68,22 +75,21 @@ const loginUser = async (req, res) => {
   }
 };
 
-const getSessionUser = async (id) => {
-  const user = await Session.find({ userId: id });
-  console.log(user.length);
-  if (user.length != 0) {
-    return true;
-  } else {
-    return false;
-  }
-};
+// const getSessionUser = async (id) => {
+//   const user = await Session.find({ userId: id });
+//   console.log(user.length);
+//   if (user.length != 0) {
+//     return true;
+//   } else {
+//     return false;
+//   }
+// };
 
 const logoutUser = async (req, response) => {
   const id = req.userId;
 
   try {
-    const session = await Session.findByIdAndDelete(id);
-    console.log(session);
+     res.clearCookie()
     response.status(200).send("Logout successful");
   } catch (error) {
     console.log(error);
@@ -93,14 +99,14 @@ const logoutUser = async (req, response) => {
 
 
 const register = async (req, res) => {
-
-
   if (req.role != Roles.Admin) {
     res.status(401).send("Unauthorized");
     return;
   }
 
   const hashPass = await creatingHashedPass(req, res);
+
+
     const getUsers = await User.find({});
     console.log(Roles.Admin);
     if (getUsers.length >= 1) {
@@ -111,31 +117,36 @@ const register = async (req, res) => {
 
     let user = await User.find({email : req.body.email})
 
-    if(user)
+    if(user.length != 0 )
     {
       res.status(400).send("Email Already exsist ")
     }
-  
-    try {
-      console.log("Controller add user" + req.file);
-      filename = req.file.filename;
-      const user = new User({
-        name: req.body.name,
-        email: req.body.email,
-        password : hashPass,
-        contact: req.body.contact,
-        age: req.body.age,
-        imagePath: filename,
-        role: role,
-      });
-  
-  
-      await user.save();
-      res.send( user);
-    } catch (error) {
-      console.log(error);
-         res.send(error);
+
+    else
+    {
+      
+      try {
+        console.log("Controller add user" + req.file);
+        filename = req.file.filename;
+        const user = new User({
+          name: req.body.name,
+          email: req.body.email,
+          password : hashPass,
+          contact: req.body.contact,
+          age: req.body.age,
+          imagePath: filename,
+          role: role,
+        });
+    
+    
+        await user.save();
+        res.send( user);
+      } catch (error) {
+        console.log(error);
+           res.send(error);
+      }
     }
+    
   };
 
 const getData = async (req , res) =>{

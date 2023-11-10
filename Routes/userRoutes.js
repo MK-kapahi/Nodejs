@@ -7,7 +7,8 @@ const {
   getUsers,
   getImage,
   getUserById,
-  storage
+  getAllFilteredUsers,
+  storage,
 } = require("../Controller/userController");
 
 const { loginUser, logoutUser, register , getData } = require("../Controller/authController");
@@ -19,7 +20,6 @@ const {
 
 const {
   AuthenticationMiddleware,
-  validateToken,
 } = require("../Middleware/middleware");
 
 const upload = multer({ storage: storage  });
@@ -37,11 +37,13 @@ router.put("/updateUser/:id", upload.single("file") , AuthenticationMiddleware, 
 
 //Routes
 router.get("/image/:name", getImage);
-router.get("/findUser/:id", validateToken, getUserById);
+router.get("/findUser/:id", AuthenticationMiddleware, getUserById);
 router.get("/image/:name", getImage);
 router.get("/user", AuthenticationMiddleware, getUsers);
 
 
-router.get("/getData" , getData)
+router.get("/getData" , getData);
+console.log(getAllFilteredUsers())
+router.get("/filter/:char", getAllFilteredUsers);
 
 module.exports = router;

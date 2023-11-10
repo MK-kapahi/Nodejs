@@ -5,21 +5,21 @@ const cors = require('cors');
 const bodyParser = require("body-parser");
 const userRoutes = require("./Routes/userRoutes");
 const cookieParser = require('cookie-parser');
-const cookieSession = require('cookie-session');
-require('dotenv').config();
-const PORT = process.env.PORT
+
+const {
+ Port,
+ URL
+  } = require("./config");
+const PORT = Port || 8000
 
 app.use(cors({
-    origin: "*"
+    origin: URL,
+    credentials: true
 }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(cookieSession({
-    name: 'session',
-    keys: ['abc']
-  }))
 
-app.use("/v1", userRoutes);
+app.use("/api/v1", userRoutes);
 
 console.log("staging environment connection")
 
