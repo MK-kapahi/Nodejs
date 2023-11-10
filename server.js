@@ -25,7 +25,7 @@ app.use(
   })
 );
 
-app.use("/v1", userRoutes);
+app.use("/api/v1", userRoutes);
 
 console.log("staging environment connection");
 

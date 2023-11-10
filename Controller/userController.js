@@ -6,7 +6,6 @@ const multer = require("multer");
 
 //Get all users from the database
 const getUsers = async (req, res) => {
-  console.log(req.role);
   if (req.role == Roles.Admin) {
     try {
       const users = await User.find({ role: 2 });
@@ -15,21 +14,18 @@ const getUsers = async (req, res) => {
       console.log(error);
       res.status(500).send(error);
     }
-    return;
   }
 
   else if (req.role == Roles.User) {
     try {
 
       console.log(req.userId)
-      const users = await User.find({ _id : req.userId });
+      const users = await User.find({ _id: req.userId });
       res.status(200).send(users);
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
     }
-
-    return
   }
 
   else {
@@ -65,9 +61,42 @@ const storage = multer.diskStorage({
   },
 });
 
+const getAllFilteredUsers = async (req, res) => {
+  console.log("heyyyyyyyyyyyyy")
+  const char = "";
+  console.log(char)
+
+  const search = await User.find({});
+  const filter = []
+
+  try {
+
+    if (char.trim() === '') {
+      console.log(search)
+    }
+
+    else {
+      for (const singleUser of search) {
+        const nameLowerCase = singleUser.name.toLowerCase();
+
+        // || (singleUser.age >= req.param.minAge && singleUser.age < req.param.maxAge)
+        if (nameLowerCase.includes(char)) {
+          filter.push(singleUser)
+        }
+      }
+      res.send(filter)
+
+    }
+  }
+  catch (err) {
+    console.log(err)
+  }
+}
+
 module.exports = {
   getUsers,
   getImage,
   getUserById,
-  storage
+  getAllFilteredUsers,
+  storage,
 };

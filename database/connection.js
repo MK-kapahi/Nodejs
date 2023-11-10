@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { DB } = require("../config");
 
 const mongoDB = new Promise((resolve, reject) => {
   mongoose

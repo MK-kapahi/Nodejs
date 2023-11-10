@@ -4,11 +4,9 @@ const User = require("../Modal/user");
 const { creatingHashedPass } = require("../utils/commonFunction");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const user = require("../Modal/user");
-const { MulterError } = require("multer");
+const { KEY } = require("../config");
 
 const loginUser = async (req, res) => {
-  console.log(req.body);
   const emailId = req.body.email;
   const userPassword = req.body.password;
   console.log(userPassword);
@@ -25,7 +23,7 @@ const loginUser = async (req, res) => {
       return res.status(401).send({ message: "Incorrect password" });
     }
 
-    const token = jwt.sign({ user_id: user._id }, process.env.JWT_KEY, {
+    const token = jwt.sign({ user_id: user._id, role: user.role }, KEY, {
       expiresIn: "2h",
     });
 
@@ -60,8 +58,9 @@ const loginUser = async (req, res) => {
       maxAge: 2 * 60 * 60 * 1000,
       domain: "localhost",
     });
-    res.setHeader("token", token, {
+    res.setHeader("Set-Cookie", token, {
       maxAge: 2 * 60 * 60 * 1000,
+      domain: "localhost",
     });
     res.status(200).send({
       data: user,
@@ -73,22 +72,21 @@ const loginUser = async (req, res) => {
   }
 };
 
-const getSessionUser = async (id) => {
-  const user = await Session.find({ userId: id });
-  console.log(user.length);
-  if (user.length != 0) {
-    return true;
-  } else {
-    return false;
-  }
-};
+// const getSessionUser = async (id) => {
+//   const user = await Session.find({ userId: id });
+//   console.log(user.length);
+//   if (user.length != 0) {
+//     return true;
+//   } else {
+//     return false;
+//   }
+// };
 
 const logoutUser = async (req, response) => {
   const id = req.userId;
 
   try {
-    const session = await Session.findByIdAndDelete(id);
-    console.log(session);
+    res.clearCookie();
     response.status(200).send("Logout successful");
   } catch (error) {
     console.log(error);
