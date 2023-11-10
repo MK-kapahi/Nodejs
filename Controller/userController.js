@@ -56,39 +56,71 @@ const storage = multer.diskStorage({
 });
 
 const getAllFilteredUsers = async (req, res) => {
-  console.log("heyyyyyyyyyyyyy");
-  const char = "";
-  console.log(char);
 
-  const search = await User.find({});
-  const filter = [];
+  const skip = parseInt(req.query.skip) || 0;
+  const limit = parseInt(req.query.limit) || 2;
+
+  const search = await User.find({role : 2});
 
   try {
-    98;
-    console.log(req.query.char);
-    // console.log(req.params["char"]);
-    var temp = req.query.char;
+    const character = req.query.char;
+    const maxAge = req.query.maxAge || 0;
+    const minAge = req.query.minAge || 0;
 
-    if (typeof temp === "undefined" || temp === "") {
-      console.log("asjdgjasd");
-      console.log(search);
-      res.send(search);
-    } else {
-      for (const singleUser of search) {
-        const nameLowerCase = singleUser.name.toLowerCase();
 
-        // || (singleUser.age >= req.param.minAge && singleUser.age < req.param.maxAge)
-        if (nameLowerCase.includes(temp)) {
-          filter.push(singleUser);
+    if ((typeof character === "undefined" || character === "") && (maxAge === 0) && (maxAge === 0)) 
+    {
+      const paginatedResults = search.slice(skip, skip + limit);
+      res.send(paginatedResults);
+    }
+
+    else if(character != "" && (maxAge === 0) && (maxAge === 0))
+    {
+      let filteredArray = search.filter((singleUser) => {
+        const nameLowerCase = singleUser.name
+        if (nameLowerCase.includes(character)) {
+          return singleUser
+        }
+      })
+      const paginatedResults = filteredArray.slice(skip, skip + limit);
+      res.send(paginatedResults);
+    }
+
+
+    else if((typeof character === "undefined" || character === "") && (maxAge != 0) && (maxAge != 0)) {
+
+      console.log("inside 2nd if")
+
+      let filteredUserAccToAge = search.filter((singleUser) =>{
+
+        if(singleUser.age >= minAge && singleUser.age < maxAge)
+        {
+          return singleUser;
         }
       }
-      res.send(filter);
+      )
+      const paginatedResults = filteredUserAccToAge.slice(skip, skip + limit);
+      res.send(paginatedResults);
+
+    }
+    else {
+
+      console.log("inside 2nd else")
+
+
+      let filteredArray = search.filter((singleUser) => {
+        const nameLowerCase = singleUser.name
+        if (nameLowerCase.includes(character) && singleUser.age >= minAge && singleUser.age < maxAge) {
+          return singleUser
+        }
+      })
+      const paginatedResults = filteredArray.slice(skip, skip + limit);
+      res.send(paginatedResults);
     }
   } catch (err) {
     console.log(err);
   }
 };
-
 module.exports = {
   getUsers,
   getImage,
