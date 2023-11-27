@@ -9,7 +9,6 @@ const updateUser = async (req, res) => {
     return;
   }
   const userId = req.params.id;
-  console.log(req.file)
 
   try {
     const user = await User.findByIdAndUpdate(userId, {

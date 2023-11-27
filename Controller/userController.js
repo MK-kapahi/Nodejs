@@ -1,3 +1,4 @@
+
 const User = require("../Modal/user");
 const path = require("path");
 const { Roles } = require("../utils/constant");
@@ -13,16 +14,21 @@ const getUsers = async (req, res) => {
       console.log(error);
       res.status(500).send(error);
     }
-  } else if (req.role == Roles.User) {
+  }
+
+  else if (req.role == Roles.User) {
     try {
-      console.log(req.userId);
+
+      console.log(req.userId)
       const users = await User.find({ _id: req.userId });
       res.status(200).send(users);
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
     }
-  } else {
+  }
+
+  else {
     res.status(401).send("Unauthorized");
   }
 };
@@ -57,70 +63,50 @@ const storage = multer.diskStorage({
 
 const getAllFilteredUsers = async (req, res) => {
 
-  const skip = parseInt(req.query.skip) || 0;
-  const limit = parseInt(req.query.limit) || 2;
+  const skip = parseInt(req.query.skip);
+  const limit = parseInt(req.query.limit);
 
-  const search = await User.find({role : 2});
 
   try {
     const character = req.query.char;
-    const maxAge = req.query.maxAge || 0;
+    const maxAge = req.query.maxAge || 150;
     const minAge = req.query.minAge || 0;
 
+    let query = { role : 2};
 
-    if ((typeof character === "undefined" || character === "") && (maxAge === 0) && (maxAge === 0)) 
-    {
-      const paginatedResults = search.slice(skip, skip + limit);
-      res.send(paginatedResults);
+    // Apply all filters using the query
+    if (character) {
+      query.name = { $regex: new RegExp(character, 'i') }; // Case-insensitive name search
     }
-
-    else if(character != "" && (maxAge === 0) && (maxAge === 0))
-    {
-      let filteredArray = search.filter((singleUser) => {
-        const nameLowerCase = singleUser.name
-        if (nameLowerCase.includes(character)) {
-          return singleUser
-        }
-      })
-      const paginatedResults = filteredArray.slice(skip, skip + limit);
-      res.send(paginatedResults);
-    }
-
-
-    else if((typeof character === "undefined" || character === "") && (maxAge != 0) && (maxAge != 0)) {
-
-      console.log("inside 2nd if")
-
-      let filteredUserAccToAge = search.filter((singleUser) =>{
-
-        if(singleUser.age >= minAge && singleUser.age < maxAge)
-        {
-          return singleUser;
-        }
+  
+    if (minAge || maxAge) {
+      query.age = {};
+      if (minAge) {
+        query.age.$gte = minAge;
       }
-      )
-      const paginatedResults = filteredUserAccToAge.slice(skip, skip + limit);
-      res.send(paginatedResults);
-
+      if (maxAge) {
+        query.age.$lt = maxAge;
+      }
     }
-    else {
+    // Execute the query and retrieve the results
+    const result =  await User.find( query).exec();
+    // console.log(result)
 
-      console.log("inside 2nd else")
+    const paginatedResults = result.slice(skip, skip + limit);
 
-
-      let filteredArray = search.filter((singleUser) => {
-        const nameLowerCase = singleUser.name
-        if (nameLowerCase.includes(character) && singleUser.age >= minAge && singleUser.age < maxAge) {
-          return singleUser
-        }
-      })
-      const paginatedResults = filteredArray.slice(skip, skip + limit);
-      res.send(paginatedResults);
-    }
-  } catch (err) {
-    console.log(err);
+    console.log(result.length)
+    res.send({
+      result: paginatedResults,
+      count: result.length,
+    });
   }
-};
+  catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+
 module.exports = {
   getUsers,
   getImage,
