@@ -63,7 +63,7 @@ function initializeSocket(server) {
             if (room) {
                 console.log(room)
                 const msgResponse = await  messageSend(data.dataTobeSent.roomId, data.dataTobeSent.senderId, data.dataTobeSent.content)
-                io.to(room.roomName).emit('message', msgResponse);
+                io.broadcast().to(room.roomName).emit('message', msgResponse);
             }
         });
 
