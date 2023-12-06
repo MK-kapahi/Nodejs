@@ -13,7 +13,6 @@ const {
 const loginUser = async (req, res) => {
   const emailId = req.body.email;
   const userPassword = req.body.password;
-  console.log(userPassword);
   try {
     const user = await User.findOne({ email: emailId });
 
@@ -86,10 +85,10 @@ const loginUser = async (req, res) => {
 // };
 
 const logoutUser = async (req, response) => {
-  const id = req.userId;
+  // const id = req.userId;
 
   try {
-     res.clearCookie()
+    response.clearCookie('token')
     response.status(200).send("Logout successful");
   } catch (error) {
     console.log(error);

@@ -106,11 +106,22 @@ const getAllFilteredUsers = async (req, res) => {
   }
 }
 
+ const getSearchedUsers = async (req, res) =>{
+  console.log(req.query)
+  const character = req.query.char;
+  let query = { };
+  query.name = { $regex: new RegExp(character, 'i') };
+  const result = await User.find(query).exec()
+
+  res.status(200).send(result)
+ }
+
 
 module.exports = {
   getUsers,
   getImage,
   getUserById,
   getAllFilteredUsers,
+  getSearchedUsers,
   storage,
 };

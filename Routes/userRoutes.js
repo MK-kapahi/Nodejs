@@ -8,6 +8,7 @@ const {
   getImage,
   getUserById,
   getAllFilteredUsers,
+  getSearchedUsers,
   storage,
 } = require("../Controller/userController");
 
@@ -45,5 +46,6 @@ router.get("/user", AuthenticationMiddleware, getUsers);
 router.get("/getData" , getData);
 // console.log(getAllFilteredUsers())
 router.get("/filter", getAllFilteredUsers);
+router.get("/searchUser", getSearchedUsers);
 
 module.exports = router;
