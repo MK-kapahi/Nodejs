@@ -10,45 +10,48 @@ const findExistingRoom = async (currentUserId, otherUserId) => {
     return existingRoom;
 };
 
-const createRoom = async (currentUserId , otherUserId , roomName ) =>
-{
+const createRoom = async (currentUserId, otherUserId, roomName) => {
 
-    
-    const room =  new ChatUserModel({
-        members : [currentUserId , otherUserId],
-        roomName : roomName,
-        start_timestamp : new Date(),
-        end_timestamp  :new Date(), 
+
+    const room = new ChatUserModel({
+        members: [currentUserId, otherUserId],
+        roomName: roomName,
+        start_timestamp: new Date(),
+        end_timestamp: new Date(),
     })
-     await room.save()
-    console.log(room)
+    await room.save()
     return room;
 }
 
-const getRoomName  = async (roomId)=>{
+const getRoomName = async (roomId) => {
     const name = await ChatUserModel.findById(roomId)
-    console.log(name)
     return name;
 }
-const messageSend  = async (R_id ,S_id , msg) =>{
-    const  message  = new messageSchema({
-        roomId : R_id, 
-        senderId :S_id,
-        content:msg ,
+const messageSend = async (R_id, S_id, msg) => {
+    const singleMessage = new messageSchema({
+        roomId: R_id,
+        senderId: S_id,
+        content: msg,
         start_timestamp: new Date(),
         end_timestamp: new Date(),
         update_timestamp: new Date()
-    }) 
+    })
 
-    await message.save()
-    console.log(message)
-    return message
-} 
-
-const allMessage = async (roomId) =>
-{
-    const messages = messageSchema.find({ roomId : roomId})
-    console.log(messages)
-    return messages;
+    await singleMessage.save()
+    return singleMessage
 }
-module.exports = {findExistingRoom , createRoom , messageSend , allMessage ,getRoomName}
+
+const allMessage = async (roomId , page , pageSize) => {
+    // Calculate the starting index based on page and pageSize
+    const startIndex = (page - 1) * pageSize;
+
+    // Retrieve a paginated set of messages for the specified room
+    const chatMessages = await messageSchema
+        .find({ roomId: roomId })
+        .skip(startIndex)
+        .limit(pageSize)
+        .exec();
+    return chatMessages;
+
+}
+module.exports = { findExistingRoom, createRoom, messageSend, allMessage, getRoomName }

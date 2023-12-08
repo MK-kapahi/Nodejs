@@ -3,6 +3,8 @@ const User = require("../Modal/user");
 const path = require("path");
 const { Roles } = require("../utils/constant");
 const multer = require("multer");
+const { generateAccessToken } = require("../utils/commonFunction");
+require('dotenv').config();
 
 //Get all users from the database
 const getUsers = async (req, res) => {
@@ -72,13 +74,13 @@ const getAllFilteredUsers = async (req, res) => {
     const maxAge = req.query.maxAge || 150;
     const minAge = req.query.minAge || 0;
 
-    let query = { role : 2};
+    let query = { role: 2 };
 
     // Apply all filters using the query
     if (character) {
       query.name = { $regex: new RegExp(character, 'i') }; // Case-insensitive name search
     }
-  
+
     if (minAge || maxAge) {
       query.age = {};
       if (minAge) {
@@ -89,7 +91,7 @@ const getAllFilteredUsers = async (req, res) => {
       }
     }
     // Execute the query and retrieve the results
-    const result =  await User.find( query).exec();
+    const result = await User.find(query).exec();
     // console.log(result)
 
     const paginatedResults = result.slice(skip, skip + limit);
@@ -106,15 +108,91 @@ const getAllFilteredUsers = async (req, res) => {
   }
 }
 
- const getSearchedUsers = async (req, res) =>{
+const getSearchedUsers = async (req, res) => {
   console.log(req.query)
   const character = req.query.char;
-  let query = { };
-  query.name = { $regex: new RegExp(character, 'i') };
+  const curentUserId = req.query.id
+  const query = {
+    $and: [
+      { name: { $regex: new RegExp(character, 'i') } },
+      { _id: { $ne: curentUserId } } // Exclude the current user
+    ]
+  };
+
   const result = await User.find(query).exec()
 
   res.status(200).send(result)
- }
+}
+
+
+
+
+const payAmount = async (req , res) =>{
+
+  const accessToken = await generateAccessToken(process.env.CLIENT_ID , process.env.SECTRET_ID)
+  const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders`;
+  const payload = {
+    intent: "CAPTURE",
+    purchase_units: [
+      {
+        amount: {
+          currency_code: "USD",
+          value: "100.00",
+        },
+      },
+    ],
+  };
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+     
+    },
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  
+  return handleResponse(response);
+};
+const handleResponse = async  (response) =>{
+  try {
+    const jsonResponse = await response.json();
+    console.log({
+      jsonResponse,
+      httpStatusCode: response.status,
+    })
+
+    captureOrder(jsonResponse.id)
+    jsonResponse.links.map((link)=>{
+      console.log(link)
+    })
+    return {
+      jsonResponse,
+      httpStatusCode: response.status,
+    };
+
+  } catch (err) {
+    const errorMessage = await response.text();
+    throw new Error(errorMessage);
+  }
+}
+
+const captureOrder = async (orderID) => {
+  const accessToken = await generateAccessToken(process.env.CLIENT_ID , process.env.SECTRET_ID)
+  console.log(accessToken)
+  
+  const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`;
+  
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    
+    },
+  });
+  console.log(response)
+}
 
 
 module.exports = {
@@ -124,4 +202,5 @@ module.exports = {
   getAllFilteredUsers,
   getSearchedUsers,
   storage,
+  payAmount
 };

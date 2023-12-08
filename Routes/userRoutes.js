@@ -2,6 +2,12 @@ const express = require("express");
 const multer = require("multer");
 
 const router = express.Router();
+const paypal = require('paypal-rest-sdk');
+paypal.configure({
+  'mode': 'sandbox', //sandbox or live
+  'client_id': process.env.client_id,
+  'client_secret': process.env.client_secret
+});
 
 const {
   getUsers,
@@ -10,6 +16,7 @@ const {
   getAllFilteredUsers,
   getSearchedUsers,
   storage,
+  payAmount
 } = require("../Controller/userController");
 
 const { loginUser, logoutUser, register , getData } = require("../Controller/authController");
@@ -47,5 +54,8 @@ router.get("/getData" , getData);
 // console.log(getAllFilteredUsers())
 router.get("/filter", getAllFilteredUsers);
 router.get("/searchUser", getSearchedUsers);
+
+router.post('/payment', payAmount)
+
 
 module.exports = router;
