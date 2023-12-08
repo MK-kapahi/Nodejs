@@ -30,6 +30,12 @@ const {
   AuthenticationMiddleware,
 } = require("../Middleware/middleware");
 
+const {
+  CreateOrder ,
+  CapturePayment
+} = require ("../Controller/paymentController")
+
+
 const upload = multer({ storage: storage  });
 
 //Auth Routes
@@ -55,7 +61,13 @@ router.get("/getData" , getData);
 router.get("/filter", getAllFilteredUsers);
 router.get("/searchUser", getSearchedUsers);
 
-router.post('/payment', payAmount)
+
+
+
+router.post("/createOrder",CreateOrder)
+router.post("/capturePayment/:orderId",CapturePayment)
+
+
 
 
 module.exports = router;

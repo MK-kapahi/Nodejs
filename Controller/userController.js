@@ -127,80 +127,11 @@ const getSearchedUsers = async (req, res) => {
 
 
 
-const payAmount = async (req , res) =>{
-
-  const accessToken = await generateAccessToken(process.env.CLIENT_ID , process.env.SECTRET_ID)
-  const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders`;
-  const payload = {
-    intent: "CAPTURE",
-    purchase_units: [
-      {
-        amount: {
-          currency_code: "USD",
-          value: "100.00",
-        },
-      },
-    ],
-  };
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-     
-    },
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  
-  return handleResponse(response);
-};
-const handleResponse = async  (response) =>{
-  try {
-    const jsonResponse = await response.json();
-    console.log({
-      jsonResponse,
-      httpStatusCode: response.status,
-    })
-
-    captureOrder(jsonResponse.id)
-    jsonResponse.links.map((link)=>{
-      console.log(link)
-    })
-    return {
-      jsonResponse,
-      httpStatusCode: response.status,
-    };
-
-  } catch (err) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage);
-  }
-}
-
-const captureOrder = async (orderID) => {
-  const accessToken = await generateAccessToken(process.env.CLIENT_ID , process.env.SECTRET_ID)
-  console.log(accessToken)
-  
-  const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`;
-  
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    
-    },
-  });
-  console.log(response)
-}
-
-
 module.exports = {
   getUsers,
   getImage,
   getUserById,
   getAllFilteredUsers,
   getSearchedUsers,
-  storage,
-  payAmount
+  storage
 };
