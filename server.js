@@ -16,6 +16,7 @@ const {
   Port,
   URL
 } = require("./config");
+const { captureOrder } = require('./Controller/userController');
 const PORT = Port || 8000
 
 app.use(
@@ -35,7 +36,26 @@ console.log("staging environment connection")
 
 app.use(express.json());
 
+const listenWebHook = async (req, res) => {
+  try {
+    console.log("Webhook received:", req.body.resource);
+
+    if (req.body.resource.status === 'APPROVED') {
+      // Assuming captureOrder returns a promise
+      return res.send(req.body.resource.id)
+    } else {
+      console.log("Order status is not APPROVED. Ignoring.");
+      res.status(200).send("Webhook received, but order status is not APPROVED.");
+    }
+  } catch (error) {
+    console.error("Error handling webhook:", error);
+    res.status(500).send("Internal Server Error");
+  }
+
+}
+
 app.use(express.urlencoded({ extended: true }));
+app.post("/listenWebHook", listenWebHook)
 
 mongoDB.then(connected => {
   server.listen(PORT, () => {

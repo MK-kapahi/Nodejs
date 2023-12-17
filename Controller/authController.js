@@ -125,7 +125,6 @@ const register = async (req, res) => {
     {
       
       try {
-        console.log("Controller add user" + req.file);
         filename = req.file.filename;
         const user = new User({
           name: req.body.name,

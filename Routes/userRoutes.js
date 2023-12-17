@@ -55,7 +55,7 @@ router.get("/getData" , getData);
 router.get("/filter", getAllFilteredUsers);
 router.get("/searchUser", getSearchedUsers);
 
-router.post('/payment', payAmount)
+router.post('/payment/:price', payAmount)
 
 
 module.exports = router;

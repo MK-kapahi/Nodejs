@@ -96,7 +96,6 @@ const getAllFilteredUsers = async (req, res) => {
 
     const paginatedResults = result.slice(skip, skip + limit);
 
-    console.log(result.length)
     res.send({
       result: paginatedResults,
       count: result.length,
@@ -109,7 +108,7 @@ const getAllFilteredUsers = async (req, res) => {
 }
 
 const getSearchedUsers = async (req, res) => {
-  console.log(req.query)
+
   const character = req.query.char;
   const curentUserId = req.query.id
   const query = {
@@ -127,9 +126,9 @@ const getSearchedUsers = async (req, res) => {
 
 
 
-const payAmount = async (req , res) =>{
+const payAmount = async (req, res) => {
 
-  const accessToken = await generateAccessToken(process.env.CLIENT_ID , process.env.SECTRET_ID)
+  const accessToken = await generateAccessToken(process.env.CLIENT_ID, process.env.SECTRET_ID)
   const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders`;
   const payload = {
     intent: "CAPTURE",
@@ -137,7 +136,7 @@ const payAmount = async (req , res) =>{
       {
         amount: {
           currency_code: "USD",
-          value: "100.00",
+          value: req.params.price,
         },
       },
     ],
@@ -146,52 +145,49 @@ const payAmount = async (req , res) =>{
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
-     
+
     },
     method: "POST",
     body: JSON.stringify(payload),
   });
-  
-  return handleResponse(response);
-};
-const handleResponse = async  (response) =>{
-  try {
-    const jsonResponse = await response.json();
-    console.log({
-      jsonResponse,
-      httpStatusCode: response.status,
-    })
 
-    captureOrder(jsonResponse.id)
-    jsonResponse.links.map((link)=>{
-      console.log(link)
-    })
-    return {
-      jsonResponse,
-      httpStatusCode: response.status,
-    };
+  if (response) {
+    try {
+      const jsonResponse = await response.json();
+      res.send(jsonResponse)
 
-  } catch (err) {
-    const errorMessage = await response.text();
-    throw new Error(errorMessage);
+
+    }
+    catch (err) {
+      const errorMessage = await response.text();
+      throw new Error(errorMessage);
+    }
   }
-}
+};
+
 
 const captureOrder = async (orderID) => {
-  const accessToken = await generateAccessToken(process.env.CLIENT_ID , process.env.SECTRET_ID)
-  console.log(accessToken)
-  
+  const accessToken = await generateAccessToken(process.env.CLIENT_ID, process.env.SECTRET_ID)
+
   const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`;
-  
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
-    
+
     },
   });
-  console.log(response)
+  if (response) {
+
+    try {
+
+      console.log("capture order", response)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 }
 
 
@@ -202,5 +198,6 @@ module.exports = {
   getAllFilteredUsers,
   getSearchedUsers,
   storage,
-  payAmount
+  payAmount,
+  captureOrder
 };
