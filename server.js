@@ -8,6 +8,7 @@ const userRoutes = require("./Routes/userRoutes");
 const cookieParser = require('cookie-parser');
 const initializeSocket = require('./socket');
 const server = http.createServer(app);
+const stripe = require('stripe')('sk_test_51OOKRCSHn7J9oTBWYT2TUX4fS2NO60QpAp3ZsJ6Mfm7nXBy99rcdjRpGJHmBBatiXkJw6DpO9UJxSAhSFk25333C008ZVF8TfH');
 
 
 // Initialize socket.io by passing the HTTP server instance
@@ -16,7 +17,7 @@ const {
   Port,
   URL
 } = require("./config");
-const { captureOrder } = require('./Controller/userController');
+const { captureOrder } = require('./Controller/paymentController');
 const PORT = Port || 8000
 
 app.use(
@@ -26,7 +27,6 @@ app.use(
   })
 );
 const io = initializeSocket(server);
-
 app.use(bodyParser.json());
 app.use(cookieParser());
 
@@ -38,11 +38,16 @@ app.use(express.json());
 
 const listenWebHook = async (req, res) => {
   try {
-    console.log("Webhook received:", req.body.resource);
 
-    if (req.body.resource.status === 'APPROVED') {
-      // Assuming captureOrder returns a promise
-      return res.send(req.body.resource.id)
+    if (req.body.resource.status == 'APPROVED') {
+      const paymentRes = await captureOrder(req.body.resource.id)
+
+      if (paymentRes) {
+        io.emit('paymentResponse', paymentRes)
+      }
+      else {
+        console.log("connection error")
+      }
     } else {
       console.log("Order status is not APPROVED. Ignoring.");
       res.status(200).send("Webhook received, but order status is not APPROVED.");
@@ -54,8 +59,13 @@ const listenWebHook = async (req, res) => {
 
 }
 
+// const listenStripeHook = (req, res) =>{
+//   console.log("Webhook received",req.body)
+// }
+
 app.use(express.urlencoded({ extended: true }));
 app.post("/listenWebHook", listenWebHook)
+// app.post("/listenStripeHook" ,listenStripeHook )
 
 mongoDB.then(connected => {
   server.listen(PORT, () => {

@@ -4,6 +4,7 @@ const path = require("path");
 const { Roles } = require("../utils/constant");
 const multer = require("multer");
 const { generateAccessToken } = require("../utils/commonFunction");
+const stripe = require('stripe')('sk_test_51OOKRCSHn7J9oTBWYT2TUX4fS2NO60QpAp3ZsJ6Mfm7nXBy99rcdjRpGJHmBBatiXkJw6DpO9UJxSAhSFk25333C008ZVF8TfH');
 require('dotenv').config();
 
 //Get all users from the database
@@ -126,69 +127,7 @@ const getSearchedUsers = async (req, res) => {
 
 
 
-const payAmount = async (req, res) => {
 
-  const accessToken = await generateAccessToken(process.env.CLIENT_ID, process.env.SECTRET_ID)
-  const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders`;
-  const payload = {
-    intent: "CAPTURE",
-    purchase_units: [
-      {
-        amount: {
-          currency_code: "USD",
-          value: req.params.price,
-        },
-      },
-    ],
-  };
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-
-    },
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  if (response) {
-    try {
-      const jsonResponse = await response.json();
-      res.send(jsonResponse)
-
-
-    }
-    catch (err) {
-      const errorMessage = await response.text();
-      throw new Error(errorMessage);
-    }
-  }
-};
-
-
-const captureOrder = async (orderID) => {
-  const accessToken = await generateAccessToken(process.env.CLIENT_ID, process.env.SECTRET_ID)
-
-  const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-
-    },
-  });
-  if (response) {
-
-    try {
-
-      console.log("capture order", response)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-}
 
 
 module.exports = {
@@ -198,6 +137,4 @@ module.exports = {
   getAllFilteredUsers,
   getSearchedUsers,
   storage,
-  payAmount,
-  captureOrder
 };
